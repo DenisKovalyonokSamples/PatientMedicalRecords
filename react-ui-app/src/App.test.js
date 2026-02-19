@@ -1,65 +1,118 @@
 /* eslint-disable testing-library/prefer-presence-queries */
-/* eslint-disable testing-library/no-render-in-setup */
-/* eslint-disable testing-library/render-result-naming-convention */
+/* eslint-disable testing-library/no-node-access */
 /* eslint-disable testing-library/prefer-screen-queries */
 import React from "react";
-import { render, fireEvent } from "@testing-library/react";
-import "@testing-library/jest-dom";
 import App from "./App";
+import { render, fireEvent, cleanup } from "@testing-library/react";
+import "@testing-library/jest-dom/extend-expect";
+import medical_records from "./medicalRecords";
+global.console.error = jest.fn();
 
-describe("FeedbackSystem Component", () => {
-    let getByTestId, queryByTestId;
+const renderApp = () => render(<App />);
 
-    beforeEach(() => {
-        const app = render(<App />);
-        getByTestId = app.getByTestId;
-        queryByTestId = app.queryByTestId;
-    });
+afterEach(() => {
+    cleanup();
+});
 
-    describe("Initial Page Rendering Tests", () => {
-        it("should render all aspects with their upvote and downvote buttons and counts", () => {
-            for (let i = 0; i < 5; i++) {
-                expect(queryByTestId(`upvote-btn-${i}`)).toBeInTheDocument();
-                expect(queryByTestId(`downvote-btn-${i}`)).toBeInTheDocument();
-                expect(queryByTestId(`upvote-count-${i}`).textContent).toBe("Upvotes: 0");
-                expect(queryByTestId(`downvote-count-${i}`).textContent).toBe("Downvotes: 0");
-            }
-        });
+const dateRegex = /(\d{2}\/\d{2}\/\d{4})/;
 
-        it("upvotes and downvotes count for the all aspects should be 0", () => {
-            for (let i = 0; i < 5; i++) {
-                expect(getByTestId(`upvote-count-${i}`).textContent).toBe("Upvotes: 0");
-                expect(getByTestId(`downvote-count-${i}`).textContent).toBe("Downvotes: 0");
-            }
-        });
-    });
+it("Test Initial Loading of the App", () => {
+    const { getByTestId, queryByTestId } = renderApp();
+    const patientProfile = queryByTestId("patient-profile");
+    const patientTable = queryByTestId("patient-table");
+    const patientName = getByTestId("patient-name");
+    const nextBtn = queryByTestId("next-btn");
+    expect(patientProfile).not.toBeInTheDocument();
+    expect(patientTable).not.toBeInTheDocument();
+    expect(nextBtn).not.toBeInTheDocument();
+    expect(patientName.children[0]).toHaveTextContent("Select Patient");
+    expect(patientName.children[0]).toHaveAttribute("disabled");
+    expect(patientName.children[1]).toHaveTextContent("John Oliver");
+    expect(patientName.children[2]).toHaveTextContent("Bob Martin");
+    expect(patientName.children[3]).toHaveTextContent("Helena Fernandez");
+});
 
-    describe("Functionality Tests", () => {
-        it("should increment the upvote count for readability when upvote button is clicked", () => {
-            fireEvent.click(getByTestId("upvote-btn-0"));
-            expect(getByTestId("upvote-count-0").textContent).toBe("Upvotes: 1");
-        });
+it("Show alert on clicking show button if no patient is selected", () => {
+    const { getByTestId, queryByTestId } = renderApp();
+    const alertMock = jest.spyOn(window, "alert").mockImplementation();
+    const showBtn = getByTestId("show");
+    fireEvent.click(showBtn);
+    expect(alertMock).toHaveBeenCalledWith("Please select a patient name");
+});
 
-        it("should increment the downvote count for readability when downvote button is clicked", () => {
-            fireEvent.click(getByTestId("downvote-btn-0"));
-            expect(getByTestId("downvote-count-0").textContent).toBe("Downvotes: 1");
-        });
+it("Test getting patient details", () => {
+    const { getByTestId, queryByTestId } = renderApp();
+    const patientName = getByTestId("patient-name");
+    const showBtn = getByTestId("show");
+    fireEvent.change(patientName, { target: { value: "1" } });
+    fireEvent.click(showBtn);
+    const patientProfile = queryByTestId("patient-profile");
+    const patientTable = queryByTestId("patient-table");
+    expect(patientProfile).toBeInTheDocument();
+    expect(patientTable).toBeInTheDocument();
+    expect(patientProfile.children[0]).toHaveTextContent("John Oliver");
+    expect(patientProfile.children[1]).toHaveTextContent("DOB: 02-01-1986");
+    expect(patientProfile.children[2]).toHaveTextContent("Height: 168 cm");
 
-        it("should increment the upvote and downvote counts independently for different aspects", () => {
-            fireEvent.click(getByTestId("upvote-btn-0"));
-            fireEvent.click(getByTestId("downvote-btn-1"));
-            expect(getByTestId("upvote-count-0").textContent).toBe("Upvotes: 1");
-            expect(getByTestId("downvote-count-0").textContent).toBe("Downvotes: 0");
-            expect(getByTestId("upvote-count-1").textContent).toBe("Upvotes: 0");
-            expect(getByTestId("downvote-count-1").textContent).toBe("Downvotes: 1");
-        });
+    for (let i = 0; i < medical_records[0].data.length; i++) {
+        expect(patientTable.children[i].children[0]).toHaveTextContent(i + 1);
+        expect(patientTable.children[i].children[1].textContent).toMatch(dateRegex);
+        expect(patientTable.children[i].children[2]).toHaveTextContent(
+            medical_records[0].data[i].diagnosis.name
+        );
+        expect(patientTable.children[i].children[3]).toHaveTextContent(
+            medical_records[0].data[i].meta.weight
+        );
+        expect(patientTable.children[i].children[4]).toHaveTextContent(
+            medical_records[0].data[i].doctor.name
+        );
+    }
+});
 
-        it("should correctly handle multiple clicks on upvote and downvote buttons", () => {
-            fireEvent.click(getByTestId("upvote-btn-0"));
-            fireEvent.click(getByTestId("upvote-btn-0"));
-            fireEvent.click(getByTestId("downvote-btn-0"));
-            expect(getByTestId("upvote-count-0").textContent).toBe("Upvotes: 2");
-            expect(getByTestId("downvote-count-0").textContent).toBe("Downvotes: 1");
-        });
-    });
+it("Clicking the next button should display next patient", () => {
+    const { getByTestId, queryByTestId } = renderApp();
+    const showBtn = getByTestId("show");
+    const patientName = getByTestId("patient-name");
+    fireEvent.change(patientName, { target: { value: "1" } });
+    fireEvent.click(showBtn);
+    const patientProfile = queryByTestId("patient-profile");
+    const patientTable = queryByTestId("patient-table");
+    const nextBtn = queryByTestId("next-btn");
+    fireEvent.click(nextBtn);
+    expect(patientProfile.children[0]).toHaveTextContent("Bob Martin");
+    expect(patientProfile.children[1]).toHaveTextContent("DOB: 14-09-1989");
+    expect(patientProfile.children[2]).toHaveTextContent("Height: 174 cm");
+
+    for (let i = 0; i < medical_records[1].data.length; i++) {
+        expect(patientTable.children[i].children[0]).toHaveTextContent(i + 1);
+        expect(patientTable.children[i].children[1].textContent).toMatch(dateRegex);
+        expect(patientTable.children[i].children[2]).toHaveTextContent(
+            medical_records[1].data[i].diagnosis.name
+        );
+        expect(patientTable.children[i].children[3]).toHaveTextContent(
+            medical_records[1].data[i].meta.weight
+        );
+        expect(patientTable.children[i].children[4]).toHaveTextContent(
+            medical_records[1].data[i].doctor.name
+        );
+    }
+    fireEvent.click(nextBtn);
+    fireEvent.click(nextBtn);
+    expect(patientProfile.children[0]).toHaveTextContent("John Oliver");
+    expect(patientProfile.children[1]).toHaveTextContent("DOB: 02-01-1986");
+    expect(patientProfile.children[2]).toHaveTextContent("Height: 168 cm");
+
+    for (let i = 0; i < medical_records[0].data.length; i++) {
+        expect(patientTable.children[i].children[0]).toHaveTextContent(i + 1);
+        expect(patientTable.children[i].children[1].textContent).toMatch(dateRegex);
+        expect(patientTable.children[i].children[2]).toHaveTextContent(
+            medical_records[0].data[i].diagnosis.name
+        );
+        expect(patientTable.children[i].children[3]).toHaveTextContent(
+            medical_records[0].data[i].meta.weight
+        );
+        expect(patientTable.children[i].children[4]).toHaveTextContent(
+            medical_records[0].data[i].doctor.name
+        );
+    }
 });

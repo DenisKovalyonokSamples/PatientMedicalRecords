@@ -1,3 +1,3 @@
-# Code Review Feedback
+# Patient Medical Records
 
-A simple React component to track and manage feedback on key aspects of code quality with upvotes and downvotes.
+A React application that gives the users the ability to look up medical records of any patient.
