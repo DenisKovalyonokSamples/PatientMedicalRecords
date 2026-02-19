@@ -1,0 +1,15 @@
+{
+  "profiles": {
+    "React App": {
+      "commandName": "Executable",
+      "executablePath": "cmd.exe",
+      "workingDirectory": "$(ProjectDir)",
+      "commandLineArgs": "/c npm start",
+      "launchBrowser": true,
+      "launchUrl": "http://localhost:8000",
+      "environmentVariables": {
+        "BROWSER": "none"
+      }
+    }
+  }
+}
