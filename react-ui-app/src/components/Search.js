@@ -1,29 +1,29 @@
 import React, { useState, useEffect } from "react";
 
 // Search component for selecting a patient and showing records
-function Search({ medicalRecords = [], onShow, selectedPatientIdx, showRecords }) {
+function Search({ medicalRecords = [], onShow, selectedPatientIndex, isRecordsVisible }) {
     // Local state for dropdown selection
-    const [selectedIdx, setSelectedIdx] = useState("");
+    const [selectedPatientDropdownValue, setSelectedPatientDropdownValue] = useState("");
 
-    // Reset dropdown when showRecords is false (i.e., after cycling)
+    // Reset dropdown when records are not visible (i.e., after cycling)
     useEffect(() => {
-        if (!showRecords) setSelectedIdx("");
-    }, [showRecords]);
+        if (!isRecordsVisible) setSelectedPatientDropdownValue("");
+    }, [isRecordsVisible]);
 
     // Handle dropdown change
-    const handleChange = (e) => {
-        setSelectedIdx(e.target.value);
+    const handleDropdownChange = (event) => {
+        setSelectedPatientDropdownValue(event.target.value);
     };
 
     // Handle Show button click
-    const handleShow = (e) => {
-        e.preventDefault();
-        if (selectedIdx === "") {
+    const handleShowButtonClick = (event) => {
+        event.preventDefault();
+        if (selectedPatientDropdownValue === "") {
             window.alert("Please select a patient name");
             return;
         }
         // Pass index (0-based) to onShow
-        onShow(parseInt(selectedIdx, 10) - 1);
+        onShow(parseInt(selectedPatientDropdownValue, 10) - 1);
     };
 
     return (
@@ -31,15 +31,15 @@ function Search({ medicalRecords = [], onShow, selectedPatientIdx, showRecords }
             <div className="select">
                 <select
                     data-testid="patient-name"
-                    value={selectedIdx}
-                    onChange={handleChange}
-                    disabled={showRecords}
+                    value={selectedPatientDropdownValue}
+                    onChange={handleDropdownChange}
+                    disabled={isRecordsVisible}
                 >
                     <option value="" disabled>
                         Select Patient
                     </option>
-                    {medicalRecords.map((patient, idx) => (
-                        <option key={patient.id} value={idx + 1}>
+                    {medicalRecords.map((patient, index) => (
+                        <option key={patient.id} value={index + 1}>
                             {patient.data[0]?.userName}
                         </option>
                     ))}
@@ -49,8 +49,8 @@ function Search({ medicalRecords = [], onShow, selectedPatientIdx, showRecords }
             <button
                 type="submit"
                 data-testid="show"
-                onClick={handleShow}
-                disabled={showRecords}
+                onClick={handleShowButtonClick}
+                disabled={isRecordsVisible}
             >
                 Show
             </button>

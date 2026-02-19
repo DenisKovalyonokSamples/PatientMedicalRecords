@@ -7,11 +7,11 @@ function Records({ patient, onNext }) {
     const { userName, userDob, meta } = patient.data[0];
 
     // Helper to format date as DD/MM/YYYY
-    const formatDate = (timestamp) => {
-        const d = new Date(timestamp);
-        const day = String(d.getDate()).padStart(2, '0');
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const year = d.getFullYear();
+    const formatDateToDayMonthYear = (timestamp) => {
+        const dateObj = new Date(timestamp);
+        const day = String(dateObj.getDate()).padStart(2, '0');
+        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const year = dateObj.getFullYear();
         return `${day}/${month}/${year}`;
     };
 
@@ -39,13 +39,13 @@ function Records({ patient, onNext }) {
                     </tr>
                 </thead>
                 <tbody id="table-body" data-testid="patient-table">
-                    {patient.data.map((rec, idx) => (
-                        <tr key={rec.id}>
-                            <td>{idx + 1}</td>
-                            <td>{formatDate(rec.timestamp)}</td>
-                            <td>{rec.diagnosis.name}</td>
-                            <td>{rec.meta.weight}</td>
-                            <td>{rec.doctor.name}</td>
+                    {patient.data.map((record, recordIndex) => (
+                        <tr key={record.id}>
+                            <td>{recordIndex + 1}</td>
+                            <td>{formatDateToDayMonthYear(record.timestamp)}</td>
+                            <td>{record.diagnosis.name}</td>
+                            <td>{record.meta.weight}</td>
+                            <td>{record.doctor.name}</td>
                         </tr>
                     ))}
                 </tbody>

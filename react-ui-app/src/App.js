@@ -1,46 +1,47 @@
+
 import React, { useState } from "react";
 import "./App.css";
 import "h8k-components";
 import Search from "./components/Search";
 import Records from "./components/Records";
-import medical_records from "./medicalRecords";
+import medicalRecordsData from "./medicalRecords";
 
-const title = "Patient Medical Records";
+const APP_TITLE = "Patient Medical Records";
 
 // Main App component manages state for selected patient and record visibility
 const App = () => {
-    // Index of selected patient in medical_records array
-    const [selectedPatientIdx, setSelectedPatientIdx] = useState(null);
+    // Index of selected patient in medicalRecordsData array
+    const [currentPatientIndex, setCurrentPatientIndex] = useState(null);
     // Whether to show the records table
-    const [showRecords, setShowRecords] = useState(false);
+    const [isRecordsVisible, setIsRecordsVisible] = useState(false);
 
     // Handler for Show button in Search
-    const handleShow = (idx) => {
-        setSelectedPatientIdx(idx);
-        setShowRecords(true);
+    const handleShowPatientRecords = (patientIndex) => {
+        setCurrentPatientIndex(patientIndex);
+        setIsRecordsVisible(true);
     };
 
     // Handler for Next button in Records
-    const handleNext = () => {
-        if (selectedPatientIdx === null) return;
-        const nextIdx = (selectedPatientIdx + 1) % medical_records.length;
-        setSelectedPatientIdx(nextIdx);
+    const handleShowNextPatient = () => {
+        if (currentPatientIndex === null) return;
+        const nextPatientIndex = (currentPatientIndex + 1) % medicalRecordsData.length;
+        setCurrentPatientIndex(nextPatientIndex);
     };
 
     return (
         <div className="App">
-            <h8k-navbar header={title}></h8k-navbar>
+            <h8k-navbar header={APP_TITLE}></h8k-navbar>
             <div className="content">
                 <Search
-                    medicalRecords={medical_records}
-                    onShow={handleShow}
-                    selectedPatientIdx={selectedPatientIdx}
-                    showRecords={showRecords}
+                    medicalRecords={medicalRecordsData}
+                    onShow={handleShowPatientRecords}
+                    selectedPatientIndex={currentPatientIndex}
+                    isRecordsVisible={isRecordsVisible}
                 />
-                {showRecords && selectedPatientIdx !== null && (
+                {isRecordsVisible && currentPatientIndex !== null && (
                     <Records
-                        patient={medical_records[selectedPatientIdx]}
-                        onNext={handleNext}
+                        patient={medicalRecordsData[currentPatientIndex]}
+                        onNext={handleShowNextPatient}
                     />
                 )}
             </div>
