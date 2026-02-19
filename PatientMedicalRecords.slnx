@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="Details.txt" />
+  </Folder>
   <Project Path="react-ui-app/react-ui-app.esproj">
     <Build />
     <Deploy />
